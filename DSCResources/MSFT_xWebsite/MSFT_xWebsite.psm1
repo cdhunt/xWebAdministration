@@ -322,7 +322,7 @@ function Set-TargetResource
     { 
         try
         {
-            $website = get-website $Name
+            $website = Get-W $Name
             if($website -ne $null)
             {
                 Remove-website -name $Name

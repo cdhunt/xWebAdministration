@@ -34,7 +34,7 @@ function Get-WebSiteByName
 .EXAMPLE
    Another example of how to use this cmdlet
 #>
-function Test-DscWebSite
+function Test-WebSiteByName
 {
     [CmdletBinding()]
     [OutputType([int])]
@@ -92,4 +92,4 @@ function Get-WebSiteBinding
     $CimBindings | Write-Output
 }
 
-Export-ModuleMember -Function Get-DSCWebSite, Test-DSCWebSite, Get-DscWebSiteBinding
+Export-ModuleMember -Function Get-WebSiteByName Test-WebSiteByName, Get-WebSiteBinding

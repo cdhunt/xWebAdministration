@@ -299,7 +299,7 @@ function Set-TargetResource
                 {
                     #Wait 1 sec for bindings to take effect
                     #I have found that starting the website results in an error if it happens to quickly
-                    Start-Sleep -s 1
+                    Start-Sleep -Seconds 1
                     Start-Website -Name $Name -ErrorAction Stop
                 }
 
@@ -385,13 +385,13 @@ function Test-TargetResource
         Throw "Please ensure that WebAdministration module is installed."
     }
 
-    $website = Get-WebSiteByName $Name
+    $count = Test-WebSiteByName $Name
     $Stop = $true
 
     Do
     {
         #Check Ensure
-        if(($Ensure -eq "Present" -and $website -eq $null) -or ($Ensure -eq "Absent" -and $website -ne $null))
+        if(($Ensure -eq "Present" -and $count -eq 0) -or ($Ensure -eq "Absent" -and $count -ne 0))
         {
             $DesiredConfigurationMatch = $false
             Write-Verbose("The Ensure state for website $Name does not match the desired state.");
@@ -399,8 +399,10 @@ function Test-TargetResource
         }
 
         # Only check properties if $website exists
-        if ($website -ne $null)
+        if ($count -ne 0)
         {
+            $website = Get-WebSiteByName $Name
+
             #Check Physical Path property
             if(ValidateWebsitePath -Name $Name -PhysicalPath $PhysicalPath)
             {

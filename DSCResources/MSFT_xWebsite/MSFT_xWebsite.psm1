@@ -1,4 +1,4 @@
-Import-Module $PSScriptRoot\HelperFunctions.psm1
+Import-Module $PSScriptRoot\Website_HelperFunctions.psm1
 
 data LocalizedData
 {

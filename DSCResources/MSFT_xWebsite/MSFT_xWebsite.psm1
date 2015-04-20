@@ -135,7 +135,7 @@ function Set-TargetResource
         {
             Throw "Please ensure that WebAdministration module is installed."
         }
-        $website = get-website $Name
+        $website = Get-WebSiteByName $Name
 
         if($website -ne $null)
         {

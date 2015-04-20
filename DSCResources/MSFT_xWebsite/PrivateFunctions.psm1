@@ -8,7 +8,7 @@
 .EXAMPLE
    Another example of how to use this cmdlet
 #>
-function Get-DSCWebSite
+function Get-DscWebSite
 {
     [CmdletBinding()]
     [OutputType([int])]
@@ -21,7 +21,7 @@ function Get-DSCWebSite
         $Name
     )
 
-   Get-Website | Where-Object Name -EQ $Name
+   Get-Website | Where-Object Name -EQ $Name | Write-Output
 }
 
 <#
@@ -34,7 +34,7 @@ function Get-DSCWebSite
 .EXAMPLE
    Another example of how to use this cmdlet
 #>
-function Get-DSCWebSiteBinding
+function Test-DscWebSite
 {
     [CmdletBinding()]
     [OutputType([int])]
@@ -44,22 +44,52 @@ function Get-DSCWebSiteBinding
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
-        $Param1,
-
-        # Param2 help description
-        [int]
-        $Param2
+        $Name
     )
 
-    Begin
-    {
-    }
-    Process
-    {
-    }
-    End
-    {
-    }
+   [array]$website = Get-DSCWebSite $Name
+
+   $website.Count | Write-Output
 }
 
-Export-ModuleMember -Function Get-DSCWebSite
+<#
+.Synopsis
+   Short description
+.DESCRIPTION
+   Long description
+.EXAMPLE
+   Example of how to use this cmdlet
+.EXAMPLE
+   Another example of how to use this cmdlet
+#>
+function Get-DscWebSiteBinding
+{
+    [CmdletBinding()]
+    [OutputType([int])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        $SiteName
+    )
+
+    [PSObject[]] $Bindings
+    $Bindings = (Get-ItemProperty -Path (Join-Path "IIS:\Sites\" $SiteName) -Name Bindings).collection
+
+    $CimBindings = foreach ($binding in $bindings)
+    {
+        $BindingObject = Get-WebBindingObject -BindingInfo $binding
+        New-CimInstance -ClassName MSFT_xWebBindingInformation -Namespace root/microsoft/Windows/DesiredStateConfiguration -Property @{Port=[System.UInt16]$BindingObject.Port;
+                                                                                                                                       Protocol=$BindingObject.Protocol;
+                                                                                                                                       IPAddress=$BindingObject.IPaddress;
+                                                                                                                                       HostName=$BindingObject.Hostname;
+                                                                                                                                       CertificateThumbprint=$BindingObject.CertificateThumbprint;
+                                                                                                                                       CertificateStoreName=$BindingObject.CertificateStoreName} -ClientOnly
+    }
+
+    $CimBindings | Write-Output
+}
+
+Export-ModuleMember -Function Get-DSCWebSite, Test-DSCWebSite, Get-DscWebSiteBinding

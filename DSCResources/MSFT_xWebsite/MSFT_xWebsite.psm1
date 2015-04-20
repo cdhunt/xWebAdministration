@@ -40,39 +40,35 @@ function Get-TargetResource
             Throw "Please ensure that WebAdministration module is installed."
         }
 
-        $Website = Get-Website -Name $Name
+        $count = Test-DSCWebSite $Name
 
-        if ($Website.count -eq 0) # No Website exists with this name.
+        switch ($count)
         {
-            $ensureResult = "Absent";
-        }
-        elseif ($Website.count -eq 1) # A single Website exists with this name.
-        {
-            $ensureResult = "Present"
-
-            [PSObject[]] $Bindings
-            $Bindings = (get-itemProperty -path IIS:\Sites\$Name -Name Bindings).collection
-
-            $CimBindings = foreach ($binding in $bindings)
-            {
-                $BindingObject = get-WebBindingObject -BindingInfo $binding
-                New-CimInstance -ClassName MSFT_xWebBindingInformation -Namespace root/microsoft/Windows/DesiredStateConfiguration -Property @{Port=[System.UInt16]$BindingObject.Port;Protocol=$BindingObject.Protocol;IPAddress=$BindingObject.IPaddress;HostName=$BindingObject.Hostname;CertificateThumbprint=$BindingObject.CertificateThumbprint;CertificateStoreName=$BindingObject.CertificateStoreName} -ClientOnly
+            0 {
+                $ensureResult = "Absent"
+                break
             }
+            1 {
+                $ensureResult = "Present"
+                $CimBindings = Get-DscWebSiteBinding $Name
 
-       $allDefaultPage = @(Get-WebConfiguration //defaultDocument/files/*  -PSPath (Join-Path "IIS:\sites\" $Name) |%{Write-Output $_.value})
+                $Website = Get-DscWebSite $Name
+                $allDefaultPage = @(Get-WebConfiguration //defaultDocument/files/* -PSPath (Join-Path "IIS:\sites\" $Name) | foreach {Write-Output $_.value})
 
+                break
+            }
+            {$_ -gt 1} {
+                $errorId = "WebsiteDiscoveryFailure"; 
+                $errorCategory = [System.Management.Automation.ErrorCategory]::InvalidResult
+                $errorMessage = $($LocalizedData.WebsiteUpdateFailureError) -f ${Name} 
+                $exception = New-Object System.InvalidOperationException $errorMessage 
+                $errorRecord = New-Object System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $null
+
+                $PSCmdlet.ThrowTerminatingError($errorRecord);
+            }
         }
-        else # Multiple websites with the same name exist. This is not supported and is an error
-        {
-            $errorId = "WebsiteDiscoveryFailure"; 
-            $errorCategory = [System.Management.Automation.ErrorCategory]::InvalidResult
-            $errorMessage = $($LocalizedData.WebsiteUpdateFailureError) -f ${Name} 
-            $exception = New-Object System.InvalidOperationException $errorMessage 
-            $errorRecord = New-Object System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $null
 
-            $PSCmdlet.ThrowTerminatingError($errorRecord);
-        }
-
+        
         # Add all Website properties to the hash table
         $getTargetResourceResult = @{
                                         Name = $Website.Name; 
@@ -82,7 +78,7 @@ function Get-TargetResource
                                         ID = $Website.id;
                                         ApplicationPool = $Website.applicationPool;
                                         BindingInfo = $CimBindings;
-                    DefaultPage = $allDefaultPage
+                                        DefaultPage = $allDefaultPage
                                     }
         
         return $getTargetResourceResult;

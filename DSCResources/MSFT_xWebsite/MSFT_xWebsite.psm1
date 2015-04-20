@@ -322,10 +322,10 @@ function Set-TargetResource
     { 
         try
         {
-            $website = Get-W $Name
+            $website = Get-WebSiteByName $Name
             if($website -ne $null)
             {
-                Remove-website -name $Name
+                Remove-Website -name $Name
         
                 Write-Verbose("Successfully removed Website $Name.")
             }
@@ -411,19 +411,19 @@ function Test-TargetResource
 
             #Check State
             if($website.state -ne $State -and $State -ne $null)
-                            {
-            $DesiredConfigurationMatch = $false
-            Write-Verbose("The state of Website $Name does not match the desired state.");
-            break
-        }
+            {
+                $DesiredConfigurationMatch = $false
+                Write-Verbose("The state of Website $Name does not match the desired state.");
+                break
+            }
 
             #Check Application Pool property 
             if(($ApplicationPool -ne "") -and ($website.applicationPool -ne $ApplicationPool))
-                            {
-            $DesiredConfigurationMatch = $false
-            Write-Verbose("Application Pool for Website $Name does not match the desired state.");
-            break
-        }
+            {
+                $DesiredConfigurationMatch = $false
+                Write-Verbose("Application Pool for Website $Name does not match the desired state.");
+                break
+            }
 
             #Check Binding properties
             if($BindingInfo -ne $null)
@@ -438,30 +438,30 @@ function Test-TargetResource
             }
         }
 
-           #Check Default Pages 
-            if($DefaultPage -ne $null)
-            {
-        $allDefaultPage = @(Get-WebConfiguration //defaultDocument/files/*  -PSPath (Join-Path "IIS:\sites\" $Name) |%{Write-Output $_.value})
+        #Check Default Pages 
+        if($DefaultPage -ne $null)
+        {
+            $allDefaultPage = @(Get-WebConfiguration //defaultDocument/files/*  -PSPath (Join-Path "IIS:\sites\" $Name) |%{Write-Output $_.value})
 
-        $allDefaultPagesPresent = $true
+            $allDefaultPagesPresent = $true
 
                 foreach($page in $DefaultPage )
                 {
                     if(-not ($allDefaultPage  -icontains $page))
                     {   
                         $DesiredConfigurationMatch = $false
-            Write-Verbose("Default Page for website $Name do not mach the desired state.");
-            $allDefaultPagesPresent = $false  
-            break
+                        Write-Verbose("Default Page for website $Name do not mach the desired state.");
+                        $allDefaultPagesPresent = $false  
+                        break
                     }
                 }
         
-         if($allDefaultPagesPresent -eq $false)
-                {
-            # This is to break out from Test 
-            break 
-        }
+            if($allDefaultPagesPresent -eq $false)
+            {
+                # This is to break out from Test 
+                break 
             }
+        }
 
 
         $Stop = $false

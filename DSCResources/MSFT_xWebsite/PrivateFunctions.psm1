@@ -47,7 +47,7 @@ function Test-WebSiteByName
         $Name
     )
 
-   [array]$website = Get-DSCWebSite $Name
+   [array]$website = Get-WebSiteByName $Name
 
    $website.Count | Write-Output
 }

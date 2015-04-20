@@ -1,3 +1,5 @@
+Import-Module $PSScriptRoot\PrivateFunctions.psm1
+
 data LocalizedData
 {
     # culture="en-US"

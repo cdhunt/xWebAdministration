@@ -8,7 +8,7 @@
 .EXAMPLE
    Another example of how to use this cmdlet
 #>
-function Get-DscWebSite
+function Get-WebSiteByName
 {
     [CmdletBinding()]
     [OutputType([int])]
@@ -62,7 +62,7 @@ function Test-DscWebSite
 .EXAMPLE
    Another example of how to use this cmdlet
 #>
-function Get-DscWebSiteBinding
+function Get-WebSiteBinding
 {
     [CmdletBinding()]
     [OutputType([int])]

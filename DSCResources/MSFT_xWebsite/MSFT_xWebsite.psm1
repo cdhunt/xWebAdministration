@@ -50,9 +50,9 @@ function Get-TargetResource
             }
             1 {
                 $ensureResult = "Present"
-                $CimBindings = Get-DscWebSiteBinding $Name
+                $CimBindings = Get-WebSiteBinding $Name
 
-                $Website = Get-DscWebSite $Name
+                $Website = Get-WebSiteByName $Name
                 $allDefaultPage = @(Get-WebConfiguration //defaultDocument/files/* -PSPath (Join-Path "IIS:\sites\" $Name) | foreach {Write-Output $_.value})
 
                 break
@@ -385,7 +385,7 @@ function Test-TargetResource
         Throw "Please ensure that WebAdministration module is installed."
     }
 
-    $website = Get-Website -Name $Name
+    $website = Get-WebSiteByName $Name
     $Stop = $true
 
     Do
